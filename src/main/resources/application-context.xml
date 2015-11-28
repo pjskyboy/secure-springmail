@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.freesundance" annotation-config="true"/>
+
+    <!--
+        see test.properties for example values
+        <context:property-placeholder location="classpath:runtime.properties" system-properties-mode="OVERRIDE"/>
+    -->
+
+    <bean id="application" class="com.freesundance.mail.Application"/>
+
+    <bean id="authSSLSocketFactory" class="com.freesundance.mail.AuthSSLSocketFactory" factory-method="getAuthSocketFactory">
+        <constructor-arg name="secureSocketProtocol" value="#{T(com.freesundance.mail.AuthSSLSocketFactory).DEFAULT_SECURE_SOCKET_PROTOCOL}"/>
+        <constructor-arg name="truststoreResourceName" value="${authSSLSocketFactory.truststoreResourceName}"/>
+        <constructor-arg name="truststorePassword" value="#{T(com.freesundance.mail.AuthSSLSocketFactory).DEFAULT_TRUSTSTORE_PASSWORD}"/>
+        <constructor-arg name="truststoreType" value="#{T(com.freesundance.mail.AuthSSLSocketFactory).DEFAULT_TRUSTSTORE_TYPE}"/>
+        <constructor-arg name="truststoreAlgorithm" value="#{T(com.freesundance.mail.AuthSSLSocketFactory).DEFAULT_TRUSTSTORE_ALGORITHM}"/>
+    </bean>
+
+    <bean id="smtpSessionFactory" class="javax.mail.Session" factory-method="getInstance">
+       <constructor-arg>
+            <map>
+                <entry key="mail.smtp.auth" value="${smtpSessionFactory.mail.smtp.auth}"/>
+                <entry key="mail.smtp.starttls.enable" value="${smtpSessionFactory.mail.smtp.starttls.enable}"/>
+                <entry key="mail.smtp.ssl.socketFactory" value-ref="authSSLSocketFactory"/>
+            </map>
+       </constructor-arg>
+    </bean>
+
+    <bean id="javaMailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="${javaMailSender.host}"/>
+        <property name="port" value="${javaMailSender.port}"/>
+        <property name="protocol" value="${javaMailSender.protocol}"/>
+        <property name="session" ref="smtpSessionFactory"/>
+    </bean>
+</beans>
